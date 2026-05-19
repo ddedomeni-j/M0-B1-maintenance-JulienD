@@ -48,4 +48,8 @@ def test_predict_with_wrong_machine_type_returns_error_422() -> None:
         
         response = client.post("/predict", json=data_ko)
         body = response.json()
-        assert response.status_code == 422
+        print(body)
+        assert response.status_code == 422    
+        assert body["status"] == "ko"
+        assert "Erreur sur 'type_machine'" in body["message"]
+

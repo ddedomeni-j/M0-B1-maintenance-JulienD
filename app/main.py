@@ -20,8 +20,10 @@ from pathlib import Path
 from typing import Any
 
 import joblib
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from loguru import logger
+from fastapi.responses import JSONResponse
 
 import pandas as pd
 import time
@@ -79,6 +81,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    field = errors[0]["loc"][-1]
+    msg = errors[0]["msg"]
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "status": "ko",
+            "message": f"Erreur sur '{field}' : {msg}"
+        }
+    )
 
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
