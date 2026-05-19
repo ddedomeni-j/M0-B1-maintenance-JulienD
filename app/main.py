@@ -41,6 +41,16 @@ async def lifespan(app: FastAPI):
     Args:
         app: instance FastAPI.
     """
+
+    # Log file initialisation
+    logger.add(
+            "logs/api.log",
+            rotation="10 MB",
+            retention="30 days",
+            compression="zip",
+            level="INFO",
+        )
+
     if not MODEL_PATH.is_file():
         logger.error(
             f"Modèle introuvable : {MODEL_PATH}. "
