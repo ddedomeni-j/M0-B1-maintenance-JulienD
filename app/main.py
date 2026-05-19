@@ -24,6 +24,7 @@ from fastapi import FastAPI, HTTPException
 from loguru import logger
 
 import pandas as pd
+import time
 
 from app.schemas import HealthResponse, MachineInput, PredictionResponse
 
@@ -109,6 +110,8 @@ def predict(item: MachineInput) -> PredictionResponse:
 
     # Check if model is loaded
     if "model" in state:
+        start = time.perf_counter()
+
         # Call model from input
         X = pd.DataFrame([item.model_dump()])
 
@@ -116,6 +119,16 @@ def predict(item: MachineInput) -> PredictionResponse:
         prediction = state["model"].predict(X)
         proba = state["model"].predict_proba(X)[0]
         classes = state["model"].classes_
+
+        duration = (time.perf_counter() - start) * 1000  # ms
+
+        # Logging input, prediction and time
+        logger.info(
+                "Prediction | input={} | prediction={} | time_ms={:.2f}",
+                item.model_dump(),
+                prediction,
+                duration
+            )
 
         # Return PredictionResponse class
         return PredictionResponse(
