@@ -77,9 +77,9 @@ def health() -> HealthResponse:
     """
     is_loaded = "model" in state
     return HealthResponse(
-        status="ok" if is_loaded else "degraded",
-        model_loaded=is_loaded,
-    )
+                    status="ok" if is_loaded else "degraded",
+                    model_loaded=is_loaded,
+                )
 
 
 @app.post("/predict", response_model=PredictionResponse)
@@ -106,10 +106,27 @@ def predict(item: MachineInput) -> PredictionResponse:
     Returns:
         PredictionResponse avec la classe prédite et les probabilités.
     """
-    raise HTTPException(
-                status_code=502,
+
+    # Check if model is loaded
+    if "model" in state:
+        # Call model from input
+        X = pd.DataFrame([item.model_dump()])
+
+        # Get prediction output
+        prediction = state["model"].predict(X)
+        proba = state["model"].predict_proba(X)[0]
+        classes = state["model"].classes_
+
+        # Return PredictionResponse class
+        return PredictionResponse(
+                        criticite=prediction[0],
+                        probabilites=dict(zip(classes, proba)),
+                    )
+    else:
+        raise HTTPException(
+                status_code=501,
                 detail=(
-                    "Endpoint /predict à implémenter — voir TODO dans app/main.py "
-                    "et le mini-cours 01_FastAPI_essentiel.md."
+                    "Model is not loaded - "
+                    "UNable to call prediction."
                 ),
         )
