@@ -45,10 +45,11 @@ async def lifespan(app: FastAPI):
     # Log file initialisation
     logger.add(
             "logs/api.log",
-            rotation="10 MB",
-            retention="30 days",
+            rotation="5 MB",
+            retention="7 days",
             compression="zip",
             level="INFO",
+            enqueue=True,
         )
 
     if not MODEL_PATH.is_file():
